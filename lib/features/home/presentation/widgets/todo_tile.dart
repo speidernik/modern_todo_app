@@ -107,11 +107,11 @@ class TodoTile extends ConsumerWidget {
           child: Card(
             margin: const EdgeInsets.only(bottom: 16),
             elevation: todo.isCompleted ? 0 : 2,
-            color: todo.isCompleted ? doneColor.withOpacity(0.1) : null,
+            color: todo.isCompleted ? doneColor.withValues(alpha: 0.1) : null,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: todo.isCompleted
-                  ? BorderSide(color: doneColor.withOpacity(0.2))
+                  ? BorderSide(color: doneColor.withValues(alpha: 0.2))
                   : BorderSide.none,
             ),
             child: InkWell(
@@ -159,7 +159,7 @@ class TodoTile extends ConsumerWidget {
                                 color: todo.isCompleted
                                     ? completedTextColor
                                     : theme.colorScheme.onSurface
-                                        .withOpacity(0.7),
+                                        .withValues(alpha: 0.7),
                                 decoration: todo.isCompleted
                                     ? TextDecoration.lineThrough
                                     : null,
@@ -176,7 +176,7 @@ class TodoTile extends ConsumerWidget {
                                   color: todo.isCompleted
                                       ? completedTextColor
                                       : theme.colorScheme.primary
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -185,7 +185,7 @@ class TodoTile extends ConsumerWidget {
                                     color: todo.isCompleted
                                         ? completedTextColor
                                         : theme.colorScheme.primary
-                                            .withOpacity(0.7),
+                                            .withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -197,7 +197,8 @@ class TodoTile extends ConsumerWidget {
                     if (!todo.isCompleted)
                       Icon(
                         Icons.chevron_right,
-                        color: theme.colorScheme.onSurface.withOpacity(0.3),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.3),
                       ),
                   ],
                 ),
@@ -213,6 +214,6 @@ class TodoTile extends ConsumerWidget {
         .then()
         .shimmer(
             duration: 1200.ms,
-            color: theme.colorScheme.primary.withOpacity(0.1));
+            color: theme.colorScheme.primary.withValues(alpha: 0.1));
   }
 }

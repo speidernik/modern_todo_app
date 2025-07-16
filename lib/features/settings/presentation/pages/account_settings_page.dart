@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:modern_todo_app/features/settings/models/account_settings.dart';
 import 'package:modern_todo_app/core/l10n/translation_service.dart';
 

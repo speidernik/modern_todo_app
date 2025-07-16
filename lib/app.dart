@@ -22,7 +22,7 @@ class App extends ConsumerWidget {
         locale: Locale(settings.locale),
         home: const MainMenuPage(),
       ),
-      loading: () => MaterialApp(
+      loading: () => const MaterialApp(
         home: Scaffold(
           body: Center(
             child: CircularProgressIndicator(),

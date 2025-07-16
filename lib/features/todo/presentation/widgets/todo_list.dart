@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_todo_app/core/l10n/translation_service.dart';
 import 'package:modern_todo_app/features/todo/models/todo.dart';
@@ -44,86 +45,117 @@ class TodoList extends ConsumerWidget {
       itemCount: todos.length,
       itemBuilder: (context, index) {
         final todo = todos[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
+        return AnimatedContainer(
+          duration: Duration(milliseconds: 500 + index * 50),
+          curve: Curves.easeOutBack,
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              colors: [
+                todo.isCompleted
+                    ? Colors.cyanAccent.withOpacity(0.18)
+                    : Colors.white.withOpacity(0.10),
+                Colors.blueAccent.withOpacity(0.10),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: todo.isCompleted
+                    ? Colors.cyanAccent.withOpacity(0.18)
+                    : Colors.black.withOpacity(0.10),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+            border: Border.all(
+              color: todo.isCompleted
+                  ? Colors.cyanAccent.withOpacity(0.3)
+                  : Colors.white.withOpacity(0.08),
+              width: 1.5,
+            ),
+          ),
           child: ListTile(
-            leading: Checkbox(
-              value: todo.isCompleted,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(todoProvider.notifier).toggleTodo(todo.id);
-                }
-              },
+            leading: AnimatedContainer(
+              duration: Duration(milliseconds: 400),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: todo.isCompleted
+                        ? Colors.cyanAccent.withOpacity(0.7)
+                        : Colors.transparent,
+                    blurRadius: 18,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Checkbox(
+                value: todo.isCompleted,
+                onChanged: (value) {
+                  if (value != null) {
+                    ref.read(todoProvider.notifier).toggleTodo(todo.id);
+                  }
+                },
+                activeColor: Colors.cyanAccent,
+                shape: const CircleBorder(),
+                side: BorderSide(
+                  color: todo.isCompleted
+                      ? Colors.cyanAccent
+                      : Colors.white.withOpacity(0.5),
+                  width: 2,
+                ),
+              ),
             ),
             title: Text(
               todo.title,
               style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: todo.isCompleted
+                    ? Colors.cyanAccent.withOpacity(0.8)
+                    : Colors.white,
                 decoration:
                     todo.isCompleted ? TextDecoration.lineThrough : null,
+                letterSpacing: 1.1,
+                fontFamily: 'Montserrat',
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (todo.description.isNotEmpty) ...[
-                  Text(todo.description),
-                  const SizedBox(height: 4),
-                ],
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat.yMMMd().add_jm().format(todo.dueDate),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildPriorityChip(context, todo.priority),
-                  ],
-                ),
-              ],
-            ),
-            trailing: isDesktop
+            subtitle: todo.dueDate != null
                 ? Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => onTodoTap(todo),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          ref.read(todoProvider.notifier).deleteTodo(todo.id);
-                        },
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Colors.cyanAccent.withOpacity(0.7)),
+                      const SizedBox(width: 6),
+                      Text(
+                        DateFormat('MMM d, yyyy').format(todo.dueDate!),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   )
-                : PopupMenuButton(
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        child: ListTile(
-                          leading: const Icon(Icons.edit),
-                          title: Text(TranslationService.tr(context, 'edit')),
-                          onTap: () => onTodoTap(todo),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        child: ListTile(
-                          leading: const Icon(Icons.delete),
-                          title: Text(TranslationService.tr(context, 'delete')),
-                          onTap: () {
-                            ref.read(todoProvider.notifier).deleteTodo(todo.id);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                : null,
+            trailing: AnimatedSwitcher(
+              duration: Duration(milliseconds: 400),
+              child: todo.isCompleted
+                  ? Icon(Icons.check_circle, color: Colors.cyanAccent, size: 28)
+                  : Icon(Icons.radio_button_unchecked,
+                      color: Colors.white.withOpacity(0.5), size: 28),
+            ),
             onTap: () => onTodoTap(todo),
+            hoverColor: Colors.cyanAccent.withOpacity(0.10),
+            splashColor: Colors.cyanAccent.withOpacity(0.18),
           ),
         );
       },

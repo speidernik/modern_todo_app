@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_todo_app/core/router/app_router.dart';
 import 'package:modern_todo_app/core/theme/app_theme.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:modern_todo_app/features/settings/providers/settings_provider.dart';
 import 'package:modern_todo_app/l10n/app_localizations.dart';
 

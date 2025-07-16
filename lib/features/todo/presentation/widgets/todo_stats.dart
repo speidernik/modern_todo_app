@@ -9,109 +9,127 @@ class TodoStats extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todos = ref.watch(todoProvider);
-    final totalTasks = todos.length;
-    final completedTasks = todos.where((todo) => todo.isCompleted).length;
-    final activeTasks = totalTasks - completedTasks;
-    final completionRate =
-        totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0.0;
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final stats = _calculateStats(todos);
+    final theme = Theme.of(context);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeInOutCubic,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.cyanAccent.withOpacity(0.13),
+            Colors.blueAccent.withOpacity(0.10),
+            Colors.white.withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.cyanAccent.withOpacity(0.18),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.cyanAccent.withOpacity(0.18),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(
-            TranslationService.tr(context, 'statistics'),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.task_alt,
-                  title: TranslationService.tr(context, 'totalTasks'),
-                  value: totalTasks.toString(),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.check_circle,
-                  title: TranslationService.tr(context, 'completed'),
-                  value: completedTasks.toString(),
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.pending_actions,
-                  title: TranslationService.tr(context, 'active'),
-                  value: activeTasks.toString(),
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.percent,
-                  title: TranslationService.tr(context, 'completionRate'),
-                  value: '${completionRate.toStringAsFixed(1)}%',
-                  color: Colors.blue,
-                ),
-              ),
-            ],
-          ),
+          _buildStat(theme, Icons.list_alt, stats['total'] ?? 0, 'Total'),
+          _buildStat(
+              theme, Icons.check_circle, stats['completed'] ?? 0, 'Done'),
+          _buildStat(
+              theme, Icons.pending_actions, stats['pending'] ?? 0, 'Pending'),
         ],
       ),
     );
   }
-}
 
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-  final Color color;
+  Map<String, int> _calculateStats(List todos) {
+    int total = todos.length;
+    int completed = todos.where((t) => t.isCompleted).length;
+    int pending = total - completed;
+    return {'total': total, 'completed': completed, 'pending': pending};
+  }
 
-  const _StatCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall,
+  Widget _buildStat(ThemeData theme, IconData icon, int value, String label) {
+    return Column(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                Colors.cyanAccent.withOpacity(0.22),
+                Colors.blueAccent.withOpacity(0.10),
+                Colors.white.withOpacity(0.08),
+              ],
+              center: Alignment.center,
+              radius: 0.8,
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.cyanAccent.withOpacity(0.22),
+                blurRadius: 24,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: Colors.cyanAccent, size: 32, shadows: [
+            Shadow(
+              color: Colors.cyanAccent.withOpacity(0.4),
+              blurRadius: 16,
             ),
-          ],
+          ]),
         ),
-      ),
+        const SizedBox(height: 10),
+        TweenAnimationBuilder<int>(
+          tween: IntTween(begin: 0, end: value),
+          duration: const Duration(milliseconds: 800),
+          builder: (context, val, _) => Text(
+            '$val',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Montserrat',
+              fontSize: 28,
+              letterSpacing: 1.1,
+              shadows: [
+                Shadow(
+                  color: Colors.cyanAccent.withOpacity(0.18),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: Colors.cyanAccent.withOpacity(0.8),
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            letterSpacing: 1.1,
+            shadows: [
+              Shadow(
+                color: Colors.cyanAccent.withOpacity(0.18),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

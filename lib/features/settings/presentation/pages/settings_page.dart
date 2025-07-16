@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_todo_app/features/settings/providers/settings_provider.dart';
-import 'package:modern_todo_app/features/settings/presentation/pages/account_settings_page.dart';
 import 'package:modern_todo_app/core/l10n/translation_service.dart';
-import 'package:modern_todo_app/features/settings/presentation/widgets/account_settings_inline_form.dart';
 import 'package:modern_todo_app/features/settings/presentation/widgets/account_security_section.dart';
 
 class SettingsPage extends ConsumerWidget {

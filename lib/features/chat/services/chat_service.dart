@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modern_todo_app/features/chat/models/message.dart';
 import 'package:modern_todo_app/features/chat/services/encryption_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class ChatService {
   final _firestore = FirebaseFirestore.instance;
@@ -44,32 +42,6 @@ class ChatService {
         .doc(message.id)
         .set(message.toJson());
     // No participants/lastMessage/FCM logic for global chat
-  }
-
-  Future<void> _sendFcmNotification(String userId, String message) async {
-    final userDoc = await _firestore.collection('users').doc(userId).get();
-    final fcmToken = userDoc.data()?['fcmToken'];
-    if (fcmToken == null) return;
-    const serverKey =
-        'YOUR_SERVER_KEY_HERE'; // Replace with your FCM server key
-    final url = Uri.parse('https://fcm.googleapis.com/fcm/send');
-    await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'key=$serverKey',
-      },
-      body: jsonEncode({
-        'to': fcmToken,
-        'notification': {
-          'title': 'New Message',
-          'body': message,
-        },
-        'data': {
-          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-        },
-      }),
-    );
   }
 
   Future<void> sendMediaMessage({

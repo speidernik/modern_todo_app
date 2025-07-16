@@ -4,6 +4,7 @@ import 'package:modern_todo_app/core/l10n/translation_service.dart';
 import 'package:modern_todo_app/features/todo/providers/todo_provider.dart';
 import 'package:modern_todo_app/features/todo/models/todo.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui';
 
 class AddTodoDialog extends ConsumerStatefulWidget {
   final Todo? todo;
@@ -99,170 +100,279 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog>
     final isDesktop = MediaQuery.of(context).size.width >= 600;
     final isEditing = widget.todo != null;
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: isDesktop ? 500 : double.infinity,
-                maxHeight: MediaQuery.of(context).size.height * 0.9,
-              ),
-              child: Material(
-                borderRadius: BorderRadius.circular(24),
-                color: theme.colorScheme.surface,
-                elevation: 8,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(24)),
-                      ),
-                      child: Row(
+    return Stack(
+      children: [
+        // Animated glassmorphism background
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0F2027),
+                const Color(0xFF2C5364),
+                const Color(0xFF43CEA2),
+                const Color(0xFF185A9D),
+              ],
+              stops: const [0.0, 0.4, 0.7, 1.0],
+            ),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
+            child: Container(
+              color: Colors.white.withOpacity(0.07),
+            ),
+          ),
+        ),
+        Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Dialog(
+                backgroundColor: Colors.transparent,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isDesktop ? 500 : double.infinity,
+                      maxHeight: MediaQuery.of(context).size.height * 0.9,
+                    ),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(32),
+                      color: Colors.white.withOpacity(0.18),
+                      elevation: 24,
+                      shadowColor: Colors.cyanAccent.withOpacity(0.18),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            isEditing ? Icons.edit_note : Icons.add_task,
-                            color: theme.colorScheme.onPrimaryContainer,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              isEditing
-                                  ? TranslationService.tr(context, 'editTask')
-                                  : TranslationService.tr(context, 'addTask'),
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: theme.colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w600,
+                          // Header
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.cyanAccent.withOpacity(0.18),
+                                  Colors.blueAccent.withOpacity(0.12),
+                                ],
                               ),
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(32)),
+                            ),
+                            child: Row(
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.easeInOut,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.cyanAccent.withOpacity(0.4),
+                                        blurRadius: 24,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    isEditing
+                                        ? Icons.edit_note
+                                        : Icons.add_task,
+                                    color: Colors.cyanAccent,
+                                    size: 32,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    isEditing
+                                        ? TranslationService.tr(
+                                            context, 'editTask')
+                                        : TranslationService.tr(
+                                            context, 'addTask'),
+                                    style:
+                                        theme.textTheme.headlineSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 28,
+                                      letterSpacing: 1.1,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black26,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: Icon(Icons.close,
+                                      color: Colors.white.withOpacity(0.8)),
+                                  splashRadius: 24,
+                                  tooltip: 'Close',
+                                ),
+                              ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: Icon(
-                              Icons.close,
-                              color: theme.colorScheme.onPrimaryContainer,
-                            ),
-                            style: IconButton.styleFrom(
-                              backgroundColor: theme
-                                  .colorScheme.onPrimaryContainer
-                                  .withOpacity(0.1),
+
+                          // Form Content
+                          Flexible(
+                            child: SingleChildScrollView(
+                              padding: EdgeInsets.only(
+                                left: 24,
+                                right: 24,
+                                top: 24,
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom +
+                                        24,
+                              ),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Title Field
+                                    _buildTitleField(theme),
+                                    const SizedBox(height: 20),
+
+                                    // Description Field
+                                    _buildDescriptionField(theme),
+                                    const SizedBox(height: 20),
+
+                                    // Priority Selection
+                                    _buildPrioritySelection(theme),
+                                    const SizedBox(height: 20),
+
+                                    // Due Date & Time Section
+                                    _buildDateTimeSection(theme),
+                                    const SizedBox(height: 20),
+
+                                    // Completed Checkbox (only for editing)
+                                    if (isEditing) ...[
+                                      _buildCompletedCheckbox(theme),
+                                      const SizedBox(height: 20),
+                                    ],
+
+                                    // Action Buttons
+                                    _buildActionButtons(theme, isEditing),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    // Form Content
-                    Flexible(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.only(
-                          left: 24,
-                          right: 24,
-                          top: 24,
-                          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Title Field
-                              _buildTitleField(theme),
-                              const SizedBox(height: 20),
-
-                              // Description Field
-                              _buildDescriptionField(theme),
-                              const SizedBox(height: 20),
-
-                              // Priority Selection
-                              _buildPrioritySelection(theme),
-                              const SizedBox(height: 20),
-
-                              // Due Date & Time Section
-                              _buildDateTimeSection(theme),
-                              const SizedBox(height: 20),
-
-                              // Completed Checkbox (only for editing)
-                              if (isEditing) ...[
-                                _buildCompletedCheckbox(theme),
-                                const SizedBox(height: 20),
-                              ],
-
-                              // Action Buttons
-                              _buildActionButtons(theme, isEditing),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildTitleField(ThemeData theme) {
-    return TextFormField(
-      controller: _titleController,
-      decoration: InputDecoration(
-        labelText: TranslationService.tr(context, 'taskTitle'),
-        hintText: TranslationService.tr(context, 'enterTaskTitle'),
-        prefixIcon: const Icon(Icons.title),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.13),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.cyanAccent.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      style: theme.textTheme.titleMedium,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return TranslationService.tr(context, 'titleRequired');
-        }
-        return null;
-      },
-      autofocus: true,
-      textInputAction: TextInputAction.next,
+      child: Focus(
+        onFocusChange: (hasFocus) => setState(() {}),
+        child: TextFormField(
+          controller: _titleController,
+          decoration: InputDecoration(
+            labelText: TranslationService.tr(context, 'taskTitle'),
+            hintText: TranslationService.tr(context, 'enterTaskTitle'),
+            prefixIcon: Icon(Icons.title, color: Colors.cyanAccent),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.cyanAccent, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.08),
+          ),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Montserrat',
+            letterSpacing: 1.1,
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return TranslationService.tr(context, 'titleRequired');
+            }
+            return null;
+          },
+          autofocus: true,
+          textInputAction: TextInputAction.next,
+        ),
+      ),
     );
   }
 
   Widget _buildDescriptionField(ThemeData theme) {
-    return TextFormField(
-      controller: _descriptionController,
-      decoration: InputDecoration(
-        labelText: TranslationService.tr(context, 'description'),
-        hintText: TranslationService.tr(context, 'descriptionOptional'),
-        prefixIcon: const Icon(Icons.description),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blueAccent.withOpacity(0.10),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      maxLines: 3,
-      textInputAction: TextInputAction.done,
+      child: Focus(
+        onFocusChange: (hasFocus) => setState(() {}),
+        child: TextFormField(
+          controller: _descriptionController,
+          decoration: InputDecoration(
+            labelText: TranslationService.tr(context, 'description'),
+            hintText: TranslationService.tr(context, 'descriptionOptional'),
+            prefixIcon: Icon(Icons.description, color: Colors.blueAccent),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.08),
+          ),
+          maxLines: 3,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: Colors.white,
+            fontFamily: 'Montserrat',
+          ),
+          textInputAction: TextInputAction.done,
+        ),
+      ),
     );
   }
 
@@ -294,8 +404,9 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog>
                         const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? color.withOpacity(0.2)
-                          : theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                          ? color.withValues(alpha: 0.2)
+                          : theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected ? color : Colors.transparent,
@@ -377,12 +488,13 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _hasDueDate
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline.withOpacity(0.5),
+                    : theme.colorScheme.outline.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -446,12 +558,13 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _hasDueTime
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline.withOpacity(0.5),
+                    : theme.colorScheme.outline.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -494,7 +607,7 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:math';
+import 'dart:ui';
 import 'package:modern_todo_app/core/l10n/translation_service.dart';
 import 'package:modern_todo_app/features/settings/providers/settings_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,134 +20,232 @@ class SettingsScreen extends ConsumerWidget {
     final isDesktop = MediaQuery.of(context).size.width >= 600;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(TranslationService.tr(context, 'settings')),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: ListView(
-            padding: EdgeInsets.all(isDesktop ? 24 : 16),
-            children: [
-              // User Settings Button (large, full-width, no card)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    textStyle: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  icon: const Icon(Icons.person, size: 28),
-                  label: Text(TranslationService.tr(context, 'userSettings')),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const UserSettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ).animate().fadeIn().slideX(),
-
-              const SizedBox(height: 16),
-
-              // Theme Section
-              _SettingsCard(
-                title: TranslationService.tr(context, 'themeMode'),
-                icon: Icons.palette_outlined,
-                child: SegmentedButton<ThemeMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      icon: const Icon(Icons.brightness_auto),
-                      label: Text(TranslationService.tr(context, 'system')),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      icon: const Icon(Icons.light_mode),
-                      label: Text(TranslationService.tr(context, 'light')),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      icon: const Icon(Icons.dark_mode),
-                      label: Text(TranslationService.tr(context, 'dark')),
-                    ),
-                  ],
-                  selected: {themeMode},
-                  onSelectionChanged: (Set<ThemeMode> newSelection) {
-                    ref
-                        .read(themeModeNotifierProvider.notifier)
-                        .setThemeMode(newSelection.first);
-                  },
-                ),
-              ).animate().fadeIn().slideX(),
-
-              const SizedBox(height: 16),
-
-              // Language Section
-              _SettingsCard(
-                title: TranslationService.tr(context, 'language'),
-                icon: Icons.language,
-                child: SegmentedButton<Locale>(
-                  segments: [
-                    ButtonSegment(
-                      value: const Locale('en'),
-                      label: Text(TranslationService.tr(context, 'english')),
-                    ),
-                    ButtonSegment(
-                      value: const Locale('de'),
-                      label: Text(TranslationService.tr(context, 'german')),
-                    ),
-                    ButtonSegment(
-                      value: const Locale('es'),
-                      label: Text(TranslationService.tr(context, 'spanish')),
-                    ),
-                  ],
-                  selected: {locale},
-                  onSelectionChanged: (Set<Locale> newSelection) {
-                    ref
-                        .read(localeNotifierProvider.notifier)
-                        .setLocale(newSelection.first);
-                  },
-                ),
-              ).animate().fadeIn().slideX(),
-
-              const SizedBox(height: 16),
-
-              // About Section
-              _SettingsCard(
-                title: TranslationService.tr(context, 'about'),
-                icon: Icons.info_outline,
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      title: TranslationService.tr(context, 'version'),
-                      icon: Icons.tag,
-                      trailing: const Text('1.0.0'),
-                    ),
-                    _SettingsTile(
-                      title: TranslationService.tr(context, 'sourceCode'),
-                      icon: Icons.code,
-                      trailing: const Icon(Icons.open_in_new),
-                      onTap: () {
-                        // Launch the repository URL
-                        launchUrl(
-                            Uri.parse('https://codeberg.org/Speidernik/MyApp'));
-                      },
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn().slideX(),
-            ],
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Animated, vibrant gradient background with glassmorphism overlay
+          AnimatedContainer(
+            duration: const Duration(seconds: 2),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF0F2027),
+                  const Color(0xFF2C5364),
+                  const Color(0xFF1A2980),
+                  const Color(0xFF43CEA2),
+                  const Color(0xFF185A9D),
+                ],
+                stops: [0.0, 0.3, 0.6, 0.8, 1.0],
+              ),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
+              child: Container(
+                color: Colors.white.withOpacity(0.05),
+              ),
+            ),
           ),
-        ),
+          // Animated floating particles
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedParticles(),
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Card(
+                  color: Colors.white.withOpacity(0.13),
+                  elevation: 24,
+                  margin: const EdgeInsets.all(24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.all(36),
+                    children: [
+                      // Modern user profile section
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.cyanAccent.withOpacity(0.18),
+                              Colors.blueAccent.withOpacity(0.12),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor:
+                                  Colors.cyanAccent.withOpacity(0.18),
+                              child: Icon(Icons.person,
+                                  size: 48, color: Colors.white),
+                            ).animate().fadeIn().scale(),
+                            const SizedBox(height: 16),
+                            Text(
+                              TranslationService.tr(context, 'settings'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 32,
+                                fontFamily: 'Montserrat',
+                                letterSpacing: 1.2,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black26,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ).animate().fadeIn().slideY(begin: 0.2),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // User Settings Button (large, full-width, no card)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            textStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          icon: const Icon(Icons.person, size: 28),
+                          label: Text(
+                              TranslationService.tr(context, 'userSettings')),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const UserSettingsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ).animate().fadeIn().slideX(),
+
+                      const SizedBox(height: 16),
+
+                      // Theme Section
+                      _SettingsCard(
+                        title: TranslationService.tr(context, 'themeMode'),
+                        icon: Icons.palette_outlined,
+                        child: SegmentedButton<ThemeMode>(
+                          segments: [
+                            ButtonSegment(
+                              value: ThemeMode.system,
+                              icon: const Icon(Icons.brightness_auto),
+                              label: Text(
+                                  TranslationService.tr(context, 'system')),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.light,
+                              icon: const Icon(Icons.light_mode),
+                              label:
+                                  Text(TranslationService.tr(context, 'light')),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.dark,
+                              icon: const Icon(Icons.dark_mode),
+                              label:
+                                  Text(TranslationService.tr(context, 'dark')),
+                            ),
+                          ],
+                          selected: {themeMode},
+                          onSelectionChanged: (Set<ThemeMode> newSelection) {
+                            ref
+                                .read(themeModeNotifierProvider.notifier)
+                                .setThemeMode(newSelection.first);
+                          },
+                        ),
+                      ).animate().fadeIn().slideX(),
+
+                      const SizedBox(height: 16),
+
+                      // Language Section
+                      _SettingsCard(
+                        title: TranslationService.tr(context, 'language'),
+                        icon: Icons.language,
+                        child: SegmentedButton<Locale>(
+                          segments: [
+                            ButtonSegment(
+                              value: const Locale('en'),
+                              label: Text(
+                                  TranslationService.tr(context, 'english')),
+                            ),
+                            ButtonSegment(
+                              value: const Locale('de'),
+                              label: Text(
+                                  TranslationService.tr(context, 'german')),
+                            ),
+                            ButtonSegment(
+                              value: const Locale('es'),
+                              label: Text(
+                                  TranslationService.tr(context, 'spanish')),
+                            ),
+                          ],
+                          selected: {locale},
+                          onSelectionChanged: (Set<Locale> newSelection) {
+                            ref
+                                .read(localeNotifierProvider.notifier)
+                                .setLocale(newSelection.first);
+                          },
+                        ),
+                      ).animate().fadeIn().slideX(),
+
+                      const SizedBox(height: 16),
+
+                      // About Section
+                      _SettingsCard(
+                        title: TranslationService.tr(context, 'about'),
+                        icon: Icons.info_outline,
+                        child: Column(
+                          children: [
+                            _SettingsTile(
+                              title: TranslationService.tr(context, 'version'),
+                              icon: Icons.tag,
+                              trailing: const Text('1.0.0'),
+                            ),
+                            _SettingsTile(
+                              title:
+                                  TranslationService.tr(context, 'sourceCode'),
+                              icon: Icons.code,
+                              trailing: const Icon(Icons.open_in_new),
+                              onTap: () {
+                                // Launch the repository URL
+                                launchUrl(Uri.parse(
+                                    'https://codeberg.org/Speidernik/MyApp'));
+                              },
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn().slideX(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -332,7 +432,7 @@ class _ChangePasswordFormState extends State<_ChangePasswordForm> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -467,7 +567,7 @@ class _ChangeEmailFormState extends State<_ChangeEmailForm> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -562,8 +662,9 @@ class _ChangeUsernameFormState extends State<_ChangeUsernameForm> {
     });
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null)
+      if (user == null) {
         throw Exception(TranslationService.tr(context, 'noUserSignedIn'));
+      }
       final newUsername = _usernameController.text.trim();
       if (newUsername.isEmpty) {
         setState(() {
@@ -607,7 +708,7 @@ class _ChangeUsernameFormState extends State<_ChangeUsernameForm> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -641,5 +742,54 @@ class _ChangeUsernameFormState extends State<_ChangeUsernameForm> {
         ),
       ],
     );
+  }
+}
+
+class AnimatedParticles extends StatelessWidget {
+  const AnimatedParticles({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _ParticlePainter(),
+      child: Container(),
+    );
+  }
+}
+
+class _ParticlePainter extends CustomPainter {
+  final Random _random = Random();
+  final List<Offset> _particles = List.generate(100, (_) => Offset.zero);
+  final List<double> _particleSizes =
+      List.generate(100, (_) => 2 + Random().nextDouble() * 3);
+
+  _ParticlePainter() {
+    _resetParticles();
+  }
+
+  void _resetParticles() {
+    for (int i = 0; i < _particles.length; i++) {
+      _particles[i] = Offset(
+        _random.nextDouble() * 800,
+        _random.nextDouble() * 600,
+      );
+    }
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < _particles.length; i++) {
+      final particle = _particles[i];
+      final paint = Paint()
+        ..color = Colors.white.withOpacity(0.8)
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(particle, _particleSizes[i], paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }

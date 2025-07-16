@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:modern_todo_app/features/settings/models/account_settings.dart';
 
 part 'settings_provider.g.dart';
+
+// Firestore collection/document name constants
+const String usersCollection = 'users';
+const String settingsCollection = 'settings';
+const String appSettingsDoc = 'app_settings';
+const String preferencesDoc = 'preferences';
+const String themeModeField = 'themeMode';
+const String localeField = 'locale';
 
 final settingsProvider =
     StateNotifierProvider<SettingsNotifier, AsyncValue<AppSettings>>((ref) {
@@ -74,14 +84,14 @@ class SettingsNotifier extends StateNotifier<AsyncValue<AppSettings>> {
       }
 
       final settingsDoc = await _firestore
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('app_settings')
+          .collection(settingsCollection)
+          .doc(appSettingsDoc)
           .get();
 
       final accountDoc =
-          await _firestore.collection('users').doc(user.uid).get();
+          await _firestore.collection(usersCollection).doc(user.uid).get();
 
       if (!settingsDoc.exists) {
         // Create default settings
@@ -115,10 +125,10 @@ class SettingsNotifier extends StateNotifier<AsyncValue<AppSettings>> {
 
       final newSettings = settings.copyWith(themeMode: themeMode);
       await _firestore
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('app_settings')
+          .collection(settingsCollection)
+          .doc(appSettingsDoc)
           .set(newSettings.toMap());
 
       state = AsyncValue.data(newSettings);
@@ -137,10 +147,10 @@ class SettingsNotifier extends StateNotifier<AsyncValue<AppSettings>> {
 
       final newSettings = settings.copyWith(locale: locale);
       await _firestore
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('app_settings')
+          .collection(settingsCollection)
+          .doc(appSettingsDoc)
           .set(newSettings.toMap());
 
       state = AsyncValue.data(newSettings);
@@ -173,14 +183,11 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 
     try {
       await FirebaseFirestore.instance
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('preferences')
-          .set({
-        'themeMode': themeMode.name,
-        'locale': locale.languageCode,
-      });
+          .collection(settingsCollection)
+          .doc(preferencesDoc)
+          .set({themeModeField: themeMode.name, localeField: locale.languageCode});
     } catch (e) {
       debugPrint('Error saving settings: $e');
     }
@@ -223,11 +230,11 @@ class LocaleNotifier extends _$LocaleNotifier {
 
     try {
       await FirebaseFirestore.instance
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('preferences')
-          .set({'themeMode': themeMode.name, 'locale': locale.languageCode});
+          .collection(settingsCollection)
+          .doc(preferencesDoc)
+          .set({themeModeField: themeMode.name, localeField: locale.languageCode});
     } catch (e) {
       debugPrint('Error saving settings: $e');
     }
@@ -239,17 +246,17 @@ class LocaleNotifier extends _$LocaleNotifier {
 Stream<Map<String, dynamic>> userSettings(ref) async* {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
-    yield {};
+    yield <String, dynamic>{};
     return;
   }
 
   await for (final snapshot in FirebaseFirestore.instance
-      .collection('users')
+      .collection(usersCollection)
       .doc(user.uid)
-      .collection('settings')
-      .doc('preferences')
+      .collection(settingsCollection)
+      .doc(preferencesDoc)
       .snapshots()) {
-    yield snapshot.data() ?? {};
+    yield snapshot.data() ?? <String, dynamic>{};
   }
 }
 
@@ -260,28 +267,28 @@ Future<void> initializeUserSettings(WidgetRef ref) async {
 
   try {
     final doc = await FirebaseFirestore.instance
-        .collection('users')
+        .collection(usersCollection)
         .doc(user.uid)
-        .collection('settings')
-        .doc('preferences')
+        .collection(settingsCollection)
+        .doc(preferencesDoc)
         .get();
 
     if (!doc.exists) {
       // Save default settings if none exist
       await FirebaseFirestore.instance
-          .collection('users')
+          .collection(usersCollection)
           .doc(user.uid)
-          .collection('settings')
-          .doc('preferences')
+          .collection(settingsCollection)
+          .doc(preferencesDoc)
           .set({
-        'themeMode': ThemeMode.system.name,
-        'locale': TranslationService.defaultLocale.languageCode,
+        themeModeField: ThemeMode.system.name,
+        localeField: TranslationService.defaultLocale.languageCode,
       });
     } else {
       final data = doc.data()!;
 
       // Set theme mode
-      final themeModeStr = data['themeMode'] as String?;
+      final themeModeStr = data[themeModeField] as String?;
       if (themeModeStr != null) {
         final themeMode = ThemeMode.values.firstWhere(
           (mode) => mode.name == themeModeStr,
@@ -291,7 +298,7 @@ Future<void> initializeUserSettings(WidgetRef ref) async {
       }
 
       // Set locale
-      final localeStr = data['locale'] as String?;
+      final localeStr = data[localeField] as String?;
       if (localeStr != null) {
         final locale = Locale(localeStr);
         ref.read(localeNotifierProvider.notifier).setLocale(locale);
