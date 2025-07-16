@@ -1,0 +1,27 @@
+{
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "kihomeproject",
+                    "appId": "1:366003844391:android:452fce8f015e0007dd2502",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "kihomeproject",
+                    "configurations": {
+                        "android": "1:366003844391:android:452fce8f015e0007dd2502",
+                        "web": "1:366003844391:web:fb046acbca616d40dd2502",
+                        "windows": "1:366003844391:web:3ab174149acd20c9dd2502"
+                    }
+                }
+            }
+        }
+    }
+}

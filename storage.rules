@@ -1,0 +1,21 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Chat media: Only allow chat participants to read/write
+    match /chat_media/{chatId}/{allPaths=**} {
+      allow read, write: if isChatParticipant(chatId);
+    }
+
+    // Helper function to check if user is a participant in the chat
+    function isChatParticipant(chatId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/chats/$(chatId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+    }
+
+    // Deny all other access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+} 
